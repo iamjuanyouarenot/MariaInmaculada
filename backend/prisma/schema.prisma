@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
+
+model Estudiante {
+  id          Int      @id @default(autoincrement())
+  nombre      String?
+  telefono    String?
+  apoderado   String?
+  dni         String?
+  edad        Int?
+  grado       String?  // Ej: "3 años", "1er Grado"
+  seccion_id  String?  // Opcional según requerimiento, dejamos como string simple o int si fuera real table
+  es_nuevo    Boolean  @default(false)
+  mensualidad Decimal  @default(300.00) @db.Decimal(10, 2)
+  createdAt   DateTime @default(now())
+  
+  deudas      Deuda[]
+}
+
+model Deuda {
+  id            Int      @id @default(autoincrement())
+  estudianteId  Int
+  concepto      String   // Ej: "Inscripción", "Marzo"
+  monto_total   Decimal  @db.Decimal(10, 2)
+  fecha_vencimiento DateTime?
+  createdAt     DateTime @default(now())
+  
+  estudiante    Estudiante @relation(fields: [estudianteId], references: [id])
+  pagos         Pago[]
+}
+
+model Pago {
+  id        Int      @id @default(autoincrement())
+  deudaId   Int
+  monto     Decimal  @db.Decimal(10, 2)
+  fecha     DateTime @default(now())
+  
+  deuda     Deuda    @relation(fields: [deudaId], references: [id])
+}
