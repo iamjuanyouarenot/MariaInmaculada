@@ -132,6 +132,17 @@ app.post('/api/estudiantes', authenticate, async (req, res) => {
         });
       }
 
+      // 3. Generar Matrícula Automática (Siempre)
+      const currentYear = new Date().getFullYear();
+      await tx.deuda.create({
+        data: {
+          estudianteId: estudiante.id,
+          concepto: 'Matrícula',
+          monto_total: 305.00,
+          fecha_vencimiento: new Date(currentYear, 2, 31) // 31 de Marzo
+        }
+      });
+
       return estudiante;
     });
 
@@ -223,7 +234,6 @@ app.get('/api/estudiantes/:id/estado-cuenta', authenticate, async (req, res) => 
     if (!est) return res.status(404).json({ error: 'Estudiante no encontrado' });
 
     const MONTH_COST = Number(est.mensualidad);
-    const matriculaDebt = est.deudas.find(d => d.concepto === 'Inscripción');
     const meses = [
       { nombre: 'Marzo', mes: 2 },
       { nombre: 'Abril', mes: 3 },
@@ -266,24 +276,58 @@ app.get('/api/estudiantes/:id/estado-cuenta', authenticate, async (req, res) => 
         pagado,
         saldo: total - pagado,
         status,
-        deudaId
+        deudaId,
+        pagos: existing ? existing.pagos : [] // Include payments for history
       };
     });
 
-    let matriculaStatus = 'na';
-    if (matriculaDebt) {
-      const pagado = matriculaDebt.pagos.reduce((acc, p) => acc + Number(p.monto), 0);
-      const total = Number(matriculaDebt.monto_total);
-      matriculaStatus = pagado >= total - 0.1 ? 'pagado' : 'vencido';
+    // 1. Handle Inscripción
+    const inscripcionDebt = est.deudas.find(d => d.concepto === 'Inscripción');
+    if (inscripcionDebt) {
+      const pagado = inscripcionDebt.pagos.reduce((acc, p) => acc + Number(p.monto), 0);
+      const total = Number(inscripcionDebt.monto_total);
+
+      let status = 'pendiente';
+      if (pagado >= total - 0.1) status = 'pagado';
+      else if (pagado > 0) status = 'parcial';
+      // Inscripción usually expires immediately or upon creation, using CreatedAt as generic deadline for display or 'vencido' if old
+      else status = 'vencido'; // Simple logic as before
+
       schedule.unshift({
         concepto: 'Inscripción',
-        mes: 'Matrícula',
-        vencimiento: matriculaDebt.createdAt,
+        mes: 'Ingreso',
+        vencimiento: inscripcionDebt.createdAt,
         monto_total: total,
         pagado,
         saldo: total - pagado,
-        status: matriculaStatus,
-        deudaId: matriculaDebt.id
+        status: status,
+        deudaId: inscripcionDebt.id,
+        pagos: inscripcionDebt.pagos
+      });
+    }
+
+    // 2. Handle Matrícula
+    const matriculaDebt = est.deudas.find(d => d.concepto === 'Matrícula');
+    if (matriculaDebt) {
+      const pagado = matriculaDebt.pagos.reduce((acc, p) => acc + Number(p.monto), 0);
+      const total = Number(matriculaDebt.monto_total);
+      const vencimiento = matriculaDebt.fecha_vencimiento || new Date(YEAR, 2, 31);
+
+      let status = 'pendiente';
+      if (pagado >= total - 0.1) status = 'pagado';
+      else if (pagado > 0) status = 'parcial';
+      else if (today > vencimiento) status = 'vencido';
+
+      schedule.unshift({
+        concepto: 'Matrícula',
+        mes: 'Anual',
+        vencimiento: vencimiento,
+        monto_total: total,
+        pagado,
+        saldo: total - pagado,
+        status: status,
+        deudaId: matriculaDebt.id,
+        pagos: matriculaDebt.pagos
       });
     }
 

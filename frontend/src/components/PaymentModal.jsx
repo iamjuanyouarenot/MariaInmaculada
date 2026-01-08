@@ -98,26 +98,68 @@ export default function PaymentModal({ student, onClose, onRefresh }) {
                             </thead>
                             <tbody className="divide-y divide-gray-100">
                                 {schedule.map((item, idx) => (
-                                    <tr key={idx} className="group hover:bg-gray-50 transition-colors">
-                                        <td className="py-3 pl-2 font-medium text-gray-900">{item.concepto}</td>
-                                        <td className="py-3 text-gray-500">
-                                            {new Date(item.vencimiento).toLocaleDateString()}
-                                        </td>
-                                        <td className="py-3">{getStatusBadge(item.status)}</td>
-                                        <td className="py-3 text-right pr-2 font-mono text-gray-700">
-                                            {item.saldo > 0 ? `S/ ${item.saldo.toFixed(2)}` : '-'}
-                                        </td>
-                                        <td className="py-3 text-right pr-2">
-                                            {item.status !== 'pagado' && (
-                                                <button
-                                                    onClick={() => handlePay(item)}
-                                                    className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm hover:shadow active:scale-95"
-                                                >
-                                                    Pagar
-                                                </button>
-                                            )}
-                                        </td>
-                                    </tr>
+                                    <React.Fragment key={idx}>
+                                        <tr className="group hover:bg-gray-50 transition-colors">
+                                            <td className="py-3 pl-2 font-medium text-gray-900">
+                                                {item.concepto}
+                                                {item.pagos && item.pagos.length > 0 && (
+                                                    <div className="text-xs text-indigo-500 font-normal mt-1">
+                                                        {item.pagos.length} pago(s) realizado(s)
+                                                    </div>
+                                                )}
+                                            </td>
+                                            <td className="py-3 text-gray-500">
+                                                {new Date(item.vencimiento).toLocaleDateString()}
+                                            </td>
+                                            <td className="py-3">{getStatusBadge(item.status)}</td>
+                                            <td className="py-3 text-right pr-2 font-mono text-gray-700">
+                                                {item.saldo > 0 ? `S/ ${item.saldo.toFixed(2)}` : '-'}
+                                            </td>
+                                            <td className="py-3 text-right pr-2">
+                                                {item.status !== 'pagado' && (
+                                                    <button
+                                                        onClick={() => handlePay(item)}
+                                                        className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm hover:shadow active:scale-95"
+                                                    >
+                                                        Pagar
+                                                    </button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                        {/* History Row */}
+                                        {item.pagos && item.pagos.length > 0 && (
+                                            <tr className="bg-indigo-50/50">
+                                                <td colSpan="5" className="px-4 py-3">
+                                                    <div className="rounded-lg border border-indigo-100 bg-white overflow-hidden">
+                                                        <div className="bg-indigo-50 px-4 py-2 text-xs font-bold text-indigo-800 uppercase tracking-wider flex justify-between items-center">
+                                                            <span>Historial de Pagos ({item.pagos.length})</span>
+                                                            <span>Total Pagado: S/ {item.pagos.reduce((acc, p) => acc + Number(p.monto), 0).toFixed(2)}</span>
+                                                        </div>
+                                                        <table className="min-w-full divide-y divide-gray-100">
+                                                            <thead className="bg-gray-50">
+                                                                <tr>
+                                                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
+                                                                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Monto Pagado</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody className="divide-y divide-gray-50">
+                                                                {item.pagos.map((pago, pIdx) => (
+                                                                    <tr key={pIdx}>
+                                                                        <td className="px-4 py-2 text-xs text-gray-600">
+                                                                            {new Date(pago.fecha).toLocaleDateString()} <span className="text-gray-400">|</span> {new Date(pago.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                                        </td>
+                                                                        <td className="px-4 py-2 text-right text-xs font-bold text-indigo-700">
+                                                                            S/ {Number(pago.monto).toFixed(2)}
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </React.Fragment>
                                 ))}
                             </tbody>
                         </table>

@@ -153,7 +153,7 @@ export default function StudentForm({ onSuccess }) {
                     </div>
                     <div className="ml-3 text-sm">
                         <label htmlFor="es_nuevo" className="font-bold text-gray-900 cursor-pointer">
-                            ¿Es Nuevo Ingreso?
+                            ¿Nuevo Ingreso?
                         </label>
                         <p className="text-gray-500">
                             Si se marca, el sistema generará automáticamente una <strong>Deuda de Inscripción (S/ 100.00)</strong> asociada al estudiante.

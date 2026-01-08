@@ -203,6 +203,13 @@ export default function Dashboard() {
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div className="flex items-center justify-end gap-2">
                                                 <button
+                                                    onClick={() => handleGenerateMatricula(s)}
+                                                    className="inline-flex items-center gap-2 bg-yellow-50 text-yellow-700 border border-yellow-200 hover:bg-yellow-100 px-3 py-2 rounded-lg text-xs font-bold transition-all"
+                                                    title="Generar Matrícula (S/ 305.00)"
+                                                >
+                                                    <DollarSign size={14} /> Matrícula
+                                                </button>
+                                                <button
                                                     onClick={() => setSelectedStudentForPayment(s)}
                                                     className="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 px-3 py-2 rounded-lg text-xs font-bold transition-all"
                                                     title="Ver Estado de Cuenta"
