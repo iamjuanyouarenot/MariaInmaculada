@@ -40,7 +40,7 @@ app.post('/api/login', async (req, res) => {
     res.json({ token, username: user.username });
   } catch (error) {
     console.error("Login Error Details:", error);
-    res.status(500).json({ error: 'Error en login' });
+    res.status(500).json({ error: `Debug Error: ${error.message}` });
   }
 });
 
