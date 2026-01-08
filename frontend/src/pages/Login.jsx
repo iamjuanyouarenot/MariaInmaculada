@@ -20,7 +20,9 @@ export default function Login() {
             login(res.data.token, res.data.username);
             navigate('/');
         } catch (err) {
-            setError('Credenciales inválidas');
+            console.error(err);
+            const msg = err.response?.data?.error || err.message || 'Error al iniciar sesión';
+            setError(msg);
         }
     };
 
